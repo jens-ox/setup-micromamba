@@ -66003,7 +66003,7 @@ var downloadMicromamba = async (url3) => {
   await import_promises.default.mkdir(import_path3.default.dirname(options.micromambaBinPath), { recursive: true });
   let buffer;
   try {
-    const { data } = await axios_default.get(url3, { responseType: "arraybuffer" });
+    const { data } = await axios_default.get(url3, { responseType: "stream" });
     buffer = Buffer.from(data);
   } catch (error) {
     core5.error(`error downloading micromamba: ${error}`);
