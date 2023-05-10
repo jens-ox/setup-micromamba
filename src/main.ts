@@ -4,7 +4,7 @@ import os from 'os'
 import path from 'path'
 import * as coreDefault from '@actions/core'
 import * as io from '@actions/io'
-import fetch from 'node-fetch'
+import axios from 'axios'
 import { sha256, getMicromambaUrl, micromambaCmd, execute, determineEnvironmentName } from './util'
 import { coreMocked } from './mocking'
 import { PATHS, options } from './options'
@@ -13,33 +13,25 @@ import { restoreCacheDownloads, restoreCacheEnvironment, saveCacheEnvironment } 
 
 const core = process.env.MOCKING ? coreMocked : coreDefault
 
-const downloadMicromamba = (url: string) => {
+const downloadMicromamba = async (url: string) => {
   core.startGroup('Install micromamba')
   core.debug(`Downloading micromamba from ${url} ...`)
 
-  const mkDir = fs.mkdir(path.dirname(options.micromambaBinPath), { recursive: true })
-  const downloadMicromamba = fetch(url)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`Download failed: ${res.statusText}`)
-      }
-      return res.arrayBuffer()
-    })
-    .then((arrayBuffer) => Buffer.from(arrayBuffer))
+  await fs.mkdir(path.dirname(options.micromambaBinPath), { recursive: true })
+  let buffer
+  try {
+    const { data } = await axios.get(url, { responseType: 'arraybuffer' })
+    buffer = data
+  } catch (error) {
+    core.error(`error downloading micromamba: ${error}`)
+  }
+  core.debug(`micromamba binary sha256: ${sha256(buffer)}`)
 
-  return Promise.all([mkDir, downloadMicromamba])
-    .then(([, buffer]) => {
-      core.debug(`micromamba binary sha256: ${sha256(buffer)}`)
-      return fs.writeFile(options.micromambaBinPath, buffer, { encoding: 'binary', mode: 0o755 })
-    })
-    .then(() => {
-      core.info(`micromamba installed to ${options.micromambaBinPath}`)
-    })
-    .catch((err) => {
-      core.error(`Error installing micromamba: ${err.message}`)
-      throw err
-    })
-    .finally(core.endGroup)
+  await fs.writeFile(options.micromambaBinPath, buffer, { encoding: 'binary', mode: 0o755 })
+
+  core.info(`micromamba installed to ${options.micromambaBinPath}`)
+
+  core.endGroup()
 }
 
 const generateCondarc = () => {
