@@ -66006,7 +66006,10 @@ var downloadMicromamba = async (url3) => {
     const { data } = await axios_default.get(url3, { responseType: "stream" });
     buffer = Buffer.from(data);
   } catch (error) {
-    core5.error(`error downloading micromamba: ${error}`);
+    if (isAxiosError2(error)) {
+      core5.error(`error response: ${error.response?.data}`);
+      core5.error(`error downloading micromamba: ${error.toJSON()}`);
+    }
     throw error;
   }
   core5.debug(`micromamba binary sha256: ${sha256(buffer)}`);

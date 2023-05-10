@@ -4,7 +4,7 @@ import os from 'os'
 import path from 'path'
 import * as coreDefault from '@actions/core'
 import * as io from '@actions/io'
-import axios from 'axios'
+import axios, { isAxiosError } from 'axios'
 import { sha256, getMicromambaUrl, micromambaCmd, execute, determineEnvironmentName } from './util'
 import { coreMocked } from './mocking'
 import { PATHS, options } from './options'
@@ -23,7 +23,10 @@ const downloadMicromamba = async (url: string) => {
     const { data } = await axios.get(url, { responseType: 'stream' })
     buffer = Buffer.from(data)
   } catch (error) {
-    core.error(`error downloading micromamba: ${error}`)
+    if (isAxiosError(error)) {
+      core.error(`error response: ${error.response?.data}`)
+      core.error(`error downloading micromamba: ${error.toJSON()}`)
+    }
     throw error
   }
   core.debug(`micromamba binary sha256: ${sha256(buffer)}`)
