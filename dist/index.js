@@ -66004,9 +66004,10 @@ var downloadMicromamba = async (url3) => {
   let buffer;
   try {
     const { data } = await axios_default.get(url3, { responseType: "arraybuffer" });
-    buffer = data;
+    buffer = Buffer.from(data);
   } catch (error) {
     core5.error(`error downloading micromamba: ${error}`);
+    throw error;
   }
   core5.debug(`micromamba binary sha256: ${sha256(buffer)}`);
   await import_promises.default.writeFile(options.micromambaBinPath, buffer, { encoding: "binary", mode: 493 });

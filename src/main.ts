@@ -21,9 +21,10 @@ const downloadMicromamba = async (url: string) => {
   let buffer
   try {
     const { data } = await axios.get(url, { responseType: 'arraybuffer' })
-    buffer = data
+    buffer = Buffer.from(data)
   } catch (error) {
     core.error(`error downloading micromamba: ${error}`)
+    throw error
   }
   core.debug(`micromamba binary sha256: ${sha256(buffer)}`)
 
