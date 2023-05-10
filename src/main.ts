@@ -20,7 +20,7 @@ const downloadMicromamba = async (url: string) => {
   await fs.mkdir(path.dirname(options.micromambaBinPath), { recursive: true })
   let buffer
   try {
-    const { data } = await axios.get(url, { responseType: 'stream' })
+    const { data } = await axios.get(url, { responseType: 'arraybuffer' })
     buffer = Buffer.from(data)
   } catch (error) {
     if (isAxiosError(error)) {
